@@ -1,15 +1,27 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { getDocumentStatus, uploadDocument } from '../../api/client';
+import { getDocumentStatus, uploadToNotebook } from '../../api/client';
 import type { DocumentSummary } from '../../types';
+import { useDismissable } from '../../hooks/useDismissable';
 import DocumentCard from '../DocumentCard';
 
 gsap.registerPlugin(useGSAP);
 
 const MAX_PREVIEW = 5;
 
+type IngestFilter = 'all' | 'ready' | 'processing' | 'failed';
+
+const FILTERS: { key: IngestFilter; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'ready', label: 'Ready' },
+  { key: 'processing', label: 'Processing' },
+  { key: 'failed', label: 'Failed' },
+];
+
 interface Props {
+  notebookId: string;
+  notebookName?: string;
   documents: DocumentSummary[];
   onRefresh: () => Promise<void>;
   showBackToWorkspace?: boolean;
@@ -17,6 +29,8 @@ interface Props {
 }
 
 export default function UploadView({
+  notebookId,
+  notebookName,
   documents,
   onRefresh,
   showBackToWorkspace = false,
@@ -29,6 +43,8 @@ export default function UploadView({
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const [filter, setFilter] = useState<IngestFilter>('all');
+  const { open, setOpen, ref: filterRef } = useDismissable();
 
   // Stop the browser from navigating away when a file is dropped outside the zone.
   useEffect(() => {
@@ -78,7 +94,7 @@ export default function UploadView({
       setError(null);
       try {
         for (const file of pdfs) {
-          await uploadDocument(file);
+          await uploadToNotebook(notebookId, file);
         }
         if (fileInputRef.current) fileInputRef.current.value = '';
         await onRefresh();
@@ -88,7 +104,7 @@ export default function UploadView({
         setUploading(false);
       }
     },
-    [onRefresh],
+    [notebookId, onRefresh],
   );
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -110,19 +126,26 @@ export default function UploadView({
     [onRefresh],
   );
 
-  const visibleDocs = showAll ? documents : documents.slice(0, MAX_PREVIEW);
+  const visibleDocs = (showAll ? documents : documents.slice(0, MAX_PREVIEW)).filter((d) =>
+    filter === 'all' ? true : d.status === filter,
+  );
 
   const hasProcessing = documents.some((d) => d.status === 'processing');
   const hasReady = documents.some((d) => d.status === 'ready');
 
+  const filterLabel = FILTERS.find((f) => f.key === filter)?.label ?? 'All';
+  const filteredCount = documents.filter((d) =>
+    filter === 'all' ? true : d.status === filter,
+  ).length;
+
   return (
-    <main ref={rootRef} className="mx-auto w-full max-w-[960px] flex-1 overflow-y-auto px-md pb-12 pt-24 md:px-lg">
+    <main ref={rootRef} className="mx-auto w-full max-w-[960px] flex-1 overflow-y-auto px-md pb-12 pt-lg md:px-lg">
       <div data-ws-header className="mb-lg flex items-start justify-between gap-md">
         <div>
           <h1 className="mb-sm font-display-lg text-display-lg text-on-surface">Upload &amp; Ingestion</h1>
           <p className="max-w-2xl font-body-doc text-body-doc text-on-surface-variant">
-            Add documents to your research workspace. Our system will automatically parse, index, and prepare
-            them for analysis.
+            Add documents to {notebookName ? `“${notebookName}”` : 'this notebook'}. Our system will automatically
+            parse, index, and prepare them for analysis — sources stay isolated to this notebook.
           </p>
         </div>
         {showBackToWorkspace && onBackToWorkspace && (
@@ -237,10 +260,51 @@ export default function UploadView({
         <div data-ws-panel className="flex max-h-[520px] flex-col rounded-lg border border-outline-variant bg-surface-container-lowest">
           <div className="flex items-center justify-between rounded-t-lg border-b border-outline-variant bg-surface-bright p-md">
             <h2 className="font-headline-sm text-headline-sm text-on-surface">Recent Ingestions</h2>
-            <button className="flex items-center gap-xs font-label-caps text-label-caps text-secondary transition-colors hover:text-primary">
-              <span className="material-symbols-outlined text-[16px]">filter_list</span>
-              Filter
-            </button>
+            <div ref={filterRef} className="relative">
+              <button
+                onClick={() => setOpen((v) => !v)}
+                className="flex cursor-pointer items-center gap-xs font-label-caps text-label-caps text-secondary transition-colors hover:text-primary"
+              >
+                <span className="material-symbols-outlined text-[16px]">filter_list</span>
+                {filterLabel}
+                {filter !== 'all' && (
+                  <span className="rounded-full bg-secondary/15 px-1.5 text-[10px] font-bold">
+                    {filteredCount}
+                  </span>
+                )}
+                <span
+                  className={`material-symbols-outlined text-[14px] transition-transform ${open ? 'rotate-180' : ''}`}
+                >
+                  expand_more
+                </span>
+              </button>
+              {open && (
+                <div className="absolute right-0 top-full z-20 mt-1 w-44 animate-fade-pop overflow-hidden rounded-lg border border-outline-variant bg-surface-container-lowest py-xs shadow-lg">
+                  {FILTERS.map((f) => {
+                    const count = documents.filter((d) =>
+                      f.key === 'all' ? true : d.status === f.key,
+                    ).length;
+                    return (
+                      <button
+                        key={f.key}
+                        onClick={() => {
+                          setFilter(f.key);
+                          setOpen(false);
+                        }}
+                        className={`flex w-full cursor-pointer items-center justify-between gap-sm px-md py-sm text-left font-body-ui text-body-ui transition-colors ${
+                          filter === f.key
+                            ? 'bg-surface-container text-secondary'
+                            : 'text-on-surface hover:bg-surface-container-low'
+                        }`}
+                      >
+                        {f.label}
+                        <span className="font-label-caps text-label-caps text-on-surface-variant">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
           <div className="custom-scrollbar flex flex-1 flex-col gap-xs overflow-y-auto p-sm">
             {visibleDocs.length === 0 ? (

@@ -28,13 +28,14 @@ function LoadingBubble() {
 }
 
 interface Props {
+  notebookId?: string;
   selectedDocs: DocumentSummary[];
   allDocs: DocumentSummary[];
   onClearContext: () => void;
   loadError?: string | null;
 }
 
-export default function ChatPanel({ selectedDocs, allDocs, onClearContext, loadError }: Props) {
+export default function ChatPanel({ notebookId, selectedDocs, allDocs, onClearContext, loadError }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -59,7 +60,7 @@ export default function ChatPanel({ selectedDocs, allDocs, onClearContext, loadE
     setError(null);
     setLoading(true);
     try {
-      const res = await queryDocuments(question, ids);
+      const res = await queryDocuments(question, ids, notebookId);
       setMessages((m) => [
         ...m,
         {

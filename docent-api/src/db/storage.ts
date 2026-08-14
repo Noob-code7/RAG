@@ -43,3 +43,10 @@ export async function downloadDocumentFile(storagePath: string): Promise<Buffer>
   if (error) throw new Error(`Storage download failed: ${error.message}`);
   return Buffer.from(await data.arrayBuffer());
 }
+
+export async function deleteDocumentFiles(storagePaths: string[]): Promise<void> {
+  if (storagePaths.length === 0) return;
+  await ensureBucket();
+  const { error } = await getSupabase().storage.from(config.storageBucket).remove(storagePaths);
+  if (error) throw new Error(`Storage delete failed: ${error.message}`);
+}

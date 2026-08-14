@@ -25,7 +25,11 @@ const router = Router();
 
 router.post('/', async (req, res) => {
   try {
-    const body = (req.body ?? {}) as { question?: unknown; document_ids?: unknown };
+    const body = (req.body ?? {}) as {
+      question?: unknown;
+      document_ids?: unknown;
+      notebook_id?: unknown;
+    };
     if (typeof body.question !== 'string' || body.question.trim().length === 0) {
       return res.status(400).json({ error: 'question is required and must be a non-empty string' });
     }
@@ -36,16 +40,23 @@ router.post('/', async (req, res) => {
     ) {
       return res.status(400).json({ error: 'document_ids must be a non-empty array of strings' });
     }
+    if (body.notebook_id !== undefined && typeof body.notebook_id !== 'string') {
+      return res.status(400).json({ error: 'notebook_id must be a string' });
+    }
     const question = body.question.trim();
     const documentIds = body.document_ids as string[];
+    const notebookId = body.notebook_id as string | undefined;
 
     // Data isolation (Phase 6): retrieval scope is explicitly restricted to
     // documents that actually exist AND are fully indexed. Chunks belonging to
     // processing, failed, or non-existent documents can never enter scope, so
-    // one session's uploads cannot leak into another session's answers.
+    // one session's uploads cannot leak into another session's answers. When a
+    // notebook_id is supplied, scope is further restricted to that notebook.
     const scopeResult = await query<{ id: string }>(
-      `select id from documents where id = any($1::uuid[]) and status = 'ready'`,
-      [documentIds],
+      notebookId
+        ? `select id from documents where id = any($1::uuid[]) and status = 'ready' and notebook_id = $2`
+        : `select id from documents where id = any($1::uuid[]) and status = 'ready'`,
+      notebookId ? [documentIds, notebookId] : [documentIds],
     );
     const scopedIds = scopeResult.rows.map((r) => r.id);
     console.log(`[query] scope=${scopedIds.length}/${documentIds.length} documents ready`);

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import NotificationsPanel from '../app/NotificationsPanel';
+import UserMenu from '../app/UserMenu';
 
 const NAV_LINKS = [
-  { label: 'Dashboard', to: '#', external: true },
-  { label: 'Workspace', to: '/app', external: false },
-  { label: 'Library', to: '#', external: true },
+  { label: 'Notebooks', to: '/' },
+  { label: 'Dashboard', to: '/dashboard' },
+  { label: 'How it works', to: '/how-it-works' },
 ];
 
 export default function Navbar() {
@@ -31,45 +33,29 @@ export default function Navbar() {
           Docent
         </Link>
         <div className="ml-xl hidden gap-md md:flex">
-          {NAV_LINKS.map((link) =>
-            link.external ? (
-              <a
-                key={link.label}
-                href={link.to}
-                className="rounded px-md py-sm text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-primary"
-              >
-                {link.label}
-              </a>
-            ) : (
-              <Link
-                key={link.label}
-                to={link.to}
-                className="rounded px-md py-sm text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-primary"
-              >
-                {link.label}
-              </Link>
-            ),
-          )}
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.label}
+              to={link.to}
+              className="rounded px-md py-sm text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-primary"
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
       </div>
 
       <div className="flex items-center gap-sm">
-        <button
-          type="button"
-          aria-label="Notifications"
-          className="flex items-center justify-center rounded p-sm transition-colors hover:bg-surface-container-low"
-        >
-          <span className="material-symbols-outlined text-on-surface-variant">notifications</span>
-        </button>
-        <button
-          type="button"
+        <NotificationsPanel />
+        <Link
+          to="/settings"
           aria-label="Settings"
-          className="hidden items-center justify-center rounded p-sm transition-colors hover:bg-surface-container-low sm:flex"
+          className="hidden items-center justify-center rounded p-sm text-on-surface-variant transition-colors hover:bg-surface-container-low sm:flex"
         >
-          <span className="material-symbols-outlined text-on-surface-variant">settings</span>
-        </button>
-        <div className="ml-sm flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-outline-variant bg-secondary-container text-[13px] font-bold text-on-secondary-container">
-          D
+          <span className="material-symbols-outlined">settings</span>
+        </Link>
+        <div>
+          <UserMenu />
         </div>
         <button
           type="button"
@@ -85,27 +71,16 @@ export default function Navbar() {
 
       {open && (
         <div className="absolute inset-x-0 top-16 border-b border-outline-variant/80 bg-surface-container-lowest px-lg py-md shadow-lg md:hidden">
-          {NAV_LINKS.map((link) =>
-            link.external ? (
-              <a
-                key={link.label}
-                href={link.to}
-                onClick={() => setOpen(false)}
-                className="block rounded px-md py-sm text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-primary"
-              >
-                {link.label}
-              </a>
-            ) : (
-              <Link
-                key={link.label}
-                to={link.to}
-                onClick={() => setOpen(false)}
-                className="block rounded px-md py-sm text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-primary"
-              >
-                {link.label}
-              </Link>
-            ),
-          )}
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.label}
+              to={link.to}
+              onClick={() => setOpen(false)}
+              className="block rounded px-md py-sm text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-primary"
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
       )}
     </nav>

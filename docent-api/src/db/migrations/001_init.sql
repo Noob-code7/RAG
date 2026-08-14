@@ -26,7 +26,10 @@ create table if not exists public.chunks (
   content     text not null,
   page_number integer not null,
   chunk_index integer not null,
-  -- 1536-dim vectors from OpenAI text-embedding-3-small.
+  -- Embedding dimensions depend on the configured provider:
+  --   Google Gemini gemini-embedding-001 (flexible dims) -> 1536
+  --   OpenAI text-embedding-3-small                     -> 1536
+  -- Match EMBEDDING_DIMENSIONS in .env to this width.
   embedding   vector(1536),
   token_count integer not null,
   created_at  timestamptz not null default now(),

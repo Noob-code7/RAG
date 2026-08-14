@@ -104,6 +104,83 @@
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+}
+
+/* --- Dark theme (Material 3 dark palette) --- */
+.dark {
+  --color-background: #0d131f;
+  --color-on-background: #e0e6f4;
+  --color-surface: #0d131f;
+  --color-on-surface: #e0e6f4;
+  --color-surface-dim: #0a101b;
+  --color-surface-bright: #333a48;
+  --color-surface-container-lowest: #080d16;
+  --color-surface-container-low: #161e2c;
+  --color-surface-container: #1a2331;
+  --color-surface-container-high: #242e3f;
+  --color-surface-container-highest: #2f3a4c;
+  --color-surface-variant: #43474e;
+  --color-on-surface-variant: #c4c7cf;
+  --color-primary: #d3e3ff;
+  --color-on-primary: #003065;
+  --color-primary-container: #17487f;
+  --color-on-primary-container: #d3e3ff;
+  --color-primary-fixed: #dae2fd;
+  --color-on-primary-fixed: #131b2e;
+  --color-primary-fixed-dim: #bec6e0;
+  --color-on-primary-fixed-variant: #3f465c;
+  --color-secondary: #b4c5ff;
+  --color-on-secondary: #1d3160;
+  --color-secondary-container: #334e86;
+  --color-on-secondary-container: #fefcff;
+  --color-secondary-fixed: #dbe1ff;
+  --color-on-secondary-fixed: #00174b;
+  --color-secondary-fixed-dim: #b4c5ff;
+  --color-on-secondary-fixed-variant: #003ea8;
+  --color-tertiary: #89f5e7;
+  --color-on-tertiary: #003731;
+  --color-tertiary-container: #005049;
+  --color-on-tertiary-container: #0c9488;
+  --color-tertiary-fixed: #89f5e7;
+  --color-on-tertiary-fixed: #00201d;
+  --color-tertiary-fixed-dim: #6bd8cb;
+  --color-on-tertiary-fixed-variant: #005049;
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+  --color-outline: #8e9099;
+  --color-outline-variant: #43474e;
+  --color-inverse-surface: #e0e6f4;
+  --color-inverse-on-surface: #2c313c;
+  --color-inverse-primary: #0051d5;
+  --color-surface-tint: #b4c5ff;
+}
+
+.dark .glass-panel {
+  background: rgba(20, 28, 44, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.dark .citation-marker {
+  background-color: rgba(180, 197, 255, 0.14);
+  color: #b4c5ff;
+}
+.dark .citation-marker:hover {
+  background-color: rgba(180, 197, 255, 0.26);
+}
+
+.dark .input-glow:focus-within {
+  border-color: #b4c5ff;
+  box-shadow: 0 0 0 2px rgba(180, 197, 255, 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 @utility glass-panel {

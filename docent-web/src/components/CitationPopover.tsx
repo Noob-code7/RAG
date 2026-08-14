@@ -1,4 +1,5 @@
 import type { Citation } from '../types';
+import { documentFileUrl } from '../api/client';
 
 export default function CitationPopover({ citation, filename }: { citation: Citation; filename: string }) {
   const n = citation.source_label.match(/\[Source\s+(\d+)\]/)?.[1] ?? citation.source_label;
@@ -19,7 +20,10 @@ export default function CitationPopover({ citation, filename }: { citation: Cita
           {citation.chunk_content_snippet.length > 240 ? '…' : ''}&rdquo;
         </p>
         <div className="mt-2 text-right">
-          <button className="cursor-pointer border-none bg-transparent p-0 font-label-caps text-label-caps text-secondary hover:underline">
+          <button
+            onClick={() => window.open(documentFileUrl(citation.document_id), '_blank', 'noopener,noreferrer')}
+            className="cursor-pointer border-none bg-transparent p-0 font-label-caps text-label-caps text-secondary hover:underline"
+          >
             View Source
           </button>
         </div>

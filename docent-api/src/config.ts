@@ -7,7 +7,22 @@ export const config = {
   databaseUrl: process.env.DATABASE_URL ?? '',
   databaseSsl: process.env.DATABASE_SSL !== 'false',
   openaiApiKey: process.env.OPENAI_API_KEY ?? '',
-  embeddingModel: process.env.EMBEDDING_MODEL ?? 'text-embedding-3-small',
+
+  // --- Embeddings provider ---
+  // Defaults to Google Gemini (AI Studio): gemini-embedding-001 via the native
+  // batchEmbedContents endpoint, 1536 dimensions (flexible dims, matches the
+  // vector(1536) schema). OpenAI is supported by setting
+  // EMBEDDING_PROVIDER=openai, EMBEDDING_BASE_URL=https://api.openai.com/v1,
+  // EMBEDDING_MODEL=text-embedding-3-small, EMBEDDING_DIMENSIONS=1536.
+  embeddingProvider: process.env.EMBEDDING_PROVIDER ?? 'gemini',
+  embeddingApiKey:
+    process.env.EMBEDDING_API_KEY ||
+    process.env.GEMINI_API_KEY ||
+    process.env.OPENAI_API_KEY ||
+    '',
+  embeddingBaseUrl:
+    process.env.EMBEDDING_BASE_URL ?? 'https://generativelanguage.googleapis.com/v1beta',
+  embeddingModel: process.env.EMBEDDING_MODEL ?? 'text-embedding-004',
   embeddingDimensions: Number(process.env.EMBEDDING_DIMENSIONS ?? 1536),
   chunkTokens: Number(process.env.CHUNK_TOKENS ?? 500),
   overlapTokens: Number(process.env.OVERLAP_TOKENS ?? 50),
@@ -22,7 +37,7 @@ export const config = {
   retrievalTopK: Number(process.env.RETRIEVAL_TOP_K ?? 8),
   rerankTopN: Number(process.env.RERANK_TOP_N ?? 4),
   // Confidence bands on cosine similarity (1 - pgvector cosine distance).
-  // Threshold rationale (tuned for OpenAI text-embedding-3-small):
+  // Threshold rationale (rough guides — tune per embedding model):
   //   - >= HIGH: the top chunk is a strong lexical/semantic match for the
   //     question -> answer can be grounded.
   //   - LOW..HIGH: weak topical overlap; answer is at best partial.
@@ -30,10 +45,15 @@ export const config = {
   //     which is the hard guardrail against fabricated answers.
   embeddingSimHigh: Number(process.env.EMBED_SIM_THRESHOLD_HIGH ?? 0.4),
   embeddingSimLow: Number(process.env.EMBED_SIM_THRESHOLD_LOW ?? 0.25),
-  generationProvider: process.env.GENERATION_PROVIDER ?? 'openai',
-  generationModel: process.env.GENERATION_MODEL ?? 'gpt-4o-mini',
-  generationBaseUrl: process.env.GENERATION_BASE_URL || undefined,
-  generationApiKey: process.env.GENERATION_API_KEY ?? process.env.OPENAI_API_KEY ?? '',
+  generationProvider: process.env.GENERATION_PROVIDER ?? 'gemini',
+  generationModel: process.env.GENERATION_MODEL ?? 'gemini-3.6-flash',
+  generationBaseUrl:
+    process.env.GENERATION_BASE_URL ?? 'https://generativelanguage.googleapis.com/v1beta',
+  generationApiKey:
+    process.env.GENERATION_API_KEY ||
+    process.env.GEMINI_API_KEY ||
+    process.env.OPENAI_API_KEY ||
+    '',
 
   // --- Observability / cost visibility (Phase 6) ---
   // List prices per 1M tokens (dev estimates; override per provider/plan).

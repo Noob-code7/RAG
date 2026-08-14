@@ -1,13 +1,25 @@
 export type DocumentStatus = 'processing' | 'ready' | 'failed';
 
+export type SourceType = 'pdf' | 'text';
+
 export interface DocumentSummary {
   id: string;
+  notebookId?: string;
   filename: string;
+  sourceType?: SourceType;
   uploadedAt: string;
   status: DocumentStatus;
   pageCount: number | null;
   progress: number;
   error: string | null;
+}
+
+export interface Notebook {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  documentCount: number;
 }
 
 export type Confidence = 'grounded' | 'partial' | 'not_found';

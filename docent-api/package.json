@@ -12,10 +12,11 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit -p tsconfig.scripts.json",
-    "test": "node --import tsx --test tests/chunker.test.ts tests/query.test.ts tests/pdf.test.ts tests/observability.test.ts",
+    "test": "node --experimental-test-module-mocks --import tsx --test tests/chunker.test.ts tests/query.test.ts tests/pdf.test.ts tests/observability.test.ts tests/serializers.test.ts tests/notebooks.api.test.ts",
     "generate-sample-pdf": "tsx scripts/generate-sample-pdf.ts",
     "seed-demo": "tsx scripts/seed-demo.ts",
-    "verify-query": "tsx scripts/verify-query.ts"
+    "verify-query": "tsx scripts/verify-query.ts",
+    "verify-notebooks": "tsx scripts/verify-notebooks.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.10",
@@ -32,7 +33,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/multer": "^2.0.0",
-    "@types/node": "^22.10.0",
+    "@types/node": "^24.13.3",
     "@types/pg": "^8.11.10",
     "pdf-lib": "^1.17.1",
     "tsx": "^4.19.2",

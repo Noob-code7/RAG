@@ -1,4 +1,12 @@
 import { Link, NavLink } from 'react-router-dom';
+import NotificationsPanel from './NotificationsPanel';
+import UserMenu from './UserMenu';
+
+const NAV_LINKS = [
+  { label: 'Notebooks', to: '/' },
+  { label: 'Dashboard', to: '/dashboard' },
+  { label: 'How it works', to: '/how-it-works' },
+];
 
 export default function AppNavbar() {
   return (
@@ -8,63 +16,34 @@ export default function AppNavbar() {
           Docent
         </Link>
         <nav className="hidden gap-md md:flex">
-          <a
-            href="#"
-            className="rounded px-2 py-1 text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-primary"
-          >
-            Dashboard
-          </a>
-          <NavLink
-            to="/app"
-            className={({ isActive }) =>
-              `rounded px-2 py-1 transition-colors hover:bg-surface-container-low ${
-                isActive
-                  ? 'border-b-2 border-secondary pb-1 font-bold text-secondary'
-                  : 'text-on-surface-variant hover:text-primary'
-              }`
-            }
-          >
-            Workspace
-          </NavLink>
-          <NavLink
-            to="/how-it-works"
-            className={({ isActive }) =>
-              `rounded px-2 py-1 transition-colors hover:bg-surface-container-low ${
-                isActive
-                  ? 'border-b-2 border-secondary pb-1 font-bold text-secondary'
-                  : 'text-on-surface-variant hover:text-primary'
-              }`
-            }
-          >
-            How it works
-          </NavLink>
-          <a
-            href="#"
-            className="rounded px-2 py-1 text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-primary"
-          >
-            Library
-          </a>
+          {NAV_LINKS.map((link) => (
+            <NavLink
+              key={link.label}
+              to={link.to}
+              end={link.to === '/'}
+              className={({ isActive }) =>
+                `rounded px-2 py-1 transition-colors hover:bg-surface-container-low ${
+                  isActive
+                    ? 'border-b-2 border-secondary pb-1 font-bold text-secondary'
+                    : 'text-on-surface-variant hover:text-primary'
+                }`
+              }
+            >
+              {link.label}
+            </NavLink>
+          ))}
         </nav>
       </div>
       <div className="flex items-center gap-sm">
-        <button
-          aria-label="Notifications"
-          className="rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-low"
-        >
-          <span className="material-symbols-outlined">notifications</span>
-        </button>
-        <button
+        <NotificationsPanel />
+        <Link
+          to="/settings"
           aria-label="Settings"
           className="rounded-full p-2 text-on-surface-variant transition-colors hover:bg-surface-container-low"
         >
           <span className="material-symbols-outlined">settings</span>
-        </button>
-        <Link
-          to="/"
-          className="ml-sm flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-outline-variant bg-secondary-container text-[13px] font-bold text-white"
-        >
-          D
         </Link>
+        <UserMenu />
       </div>
     </header>
   );

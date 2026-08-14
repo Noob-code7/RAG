@@ -1,18 +1,19 @@
-export type ScopeFilter = 'all' | 'recent' | 'verified' | 'processing';
+export type ScopeFilter = 'all' | 'verified' | 'processing';
 
 const FILTERS: { key: ScopeFilter; label: string; icon: string }[] = [
   { key: 'all', label: 'All Documents', icon: 'folder' },
-  { key: 'recent', label: 'Recent', icon: 'history' },
-  { key: 'verified', label: 'Verified', icon: 'verified' },
+  { key: 'verified', label: 'Ready', icon: 'verified' },
   { key: 'processing', label: 'Processing', icon: 'sync' },
 ];
 
 export default function SideNav({
+  notebookName,
   count,
   filter,
   onFilter,
   onUpload,
 }: {
+  notebookName?: string;
   count: number;
   filter: ScopeFilter;
   onFilter: (filter: ScopeFilter) => void;
@@ -25,12 +26,12 @@ export default function SideNav({
           <div className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded bg-surface-container-high">
             <span className="material-symbols-outlined text-[16px] text-secondary">account_tree</span>
           </div>
-          <h2 className="font-headline-sm text-headline-sm font-semibold text-on-surface">
-            Research Workspace
+          <h2 className="truncate font-headline-sm text-headline-sm font-semibold text-on-surface" title={notebookName}>
+            {notebookName ?? 'Workspace'}
           </h2>
         </div>
         <p className="font-label-caps text-label-caps text-on-surface-variant opacity-70">
-          {count} Documents Active
+          {count} Document{count === 1 ? '' : 's'} in this notebook
         </p>
       </div>
 
@@ -64,18 +65,11 @@ export default function SideNav({
         </button>
         <div className="flex flex-col gap-xs font-label-caps text-label-caps">
           <a
-            href="#"
+            href="/help"
             className="flex items-center gap-sm px-sm py-xs text-on-surface-variant opacity-70 transition-opacity hover:opacity-100"
           >
             <span className="material-symbols-outlined text-[16px]">help</span>
             Help
-          </a>
-          <a
-            href="#"
-            className="flex items-center gap-sm px-sm py-xs text-on-surface-variant opacity-70 transition-opacity hover:opacity-100"
-          >
-            <span className="material-symbols-outlined text-[16px]">archive</span>
-            Archive
           </a>
         </div>
       </div>

@@ -6,13 +6,24 @@ import { extractPdfPages, hasExtractableText } from './pdfExtractor.js';
 import { chunkPages } from './chunker.js';
 import { embedTexts } from '../embeddings/embeddingClient.js';
 import { costOfEmbeddings, logCost } from '../observability/metrics.js';
+import type { PageText, SourceType } from '../../types.js';
 
 const EMBED_BATCH_SIZE = 10;
 
-export async function createDocumentRecord(filename: string): Promise<string> {
+export type IngestSource =
+  | { type: 'pdf'; buffer: Buffer }
+  | { type: 'text'; content: string };
+
+export async function createDocumentRecord(
+  notebookId: string,
+  filename: string,
+  sourceType: SourceType,
+  content: string | null = null,
+): Promise<string> {
   const { rows } = await query<{ id: string }>(
-    `insert into documents (filename, status) values ($1, 'processing') returning id`,
-    [filename],
+    `insert into documents (notebook_id, filename, source_type, content, status)
+     values ($1, $2, $3, $4, 'processing') returning id`,
+    [notebookId, filename, sourceType, content],
   );
   return rows[0].id;
 }
@@ -22,29 +33,38 @@ function toVectorLiteral(vector: number[]): string {
 }
 
 /**
- * Full ingestion pipeline for one document:
- *   storage upload -> page-by-page text extraction -> recursive chunking with
- *   overlap -> per-chunk embeddings -> chunk rows. The document row is updated
- *   as progress is made so the frontend can poll GET /documents/:id/status.
- * Any failure marks the document as failed rather than leaving it stuck.
+ * Full ingestion pipeline for one document, scoped to its notebook:
+ *   PDF  -> storage upload -> page-by-page text extraction
+ *   text -> a single synthetic page from the pasted content
+ * then the same recursive chunking with overlap -> per-chunk embeddings ->
+ * chunk rows. The document row is updated as progress is made so the frontend
+ * can poll GET /documents/:id/status. Any failure marks the document as failed
+ * rather than leaving it stuck.
  */
-export async function uploadAndIngest(docId: string, fileBuffer: Buffer): Promise<void> {
+export async function ingestDocument(docId: string, source: IngestSource): Promise<void> {
   const t0 = performance.now();
   try {
-    const storagePath = await uploadDocumentFile(docId, fileBuffer);
-    await query(`update documents set storage_path = $2 where id = $1`, [docId, storagePath]);
+    let pages: PageText[];
 
-    const pages = await extractPdfPages(fileBuffer);
-    await query(`update documents set page_count = $2 where id = $1`, [docId, pages.length]);
+    if (source.type === 'pdf') {
+      const storagePath = await uploadDocumentFile(docId, source.buffer);
+      await query(`update documents set storage_path = $2 where id = $1`, [docId, storagePath]);
 
-    // Guard against "silent empty indexing": a scanned or image-only PDF has no
-    // extractable text layer, which would otherwise yield zero chunks and be
-    // marked ready with nothing to retrieve from.
-    if (!hasExtractableText(pages, config.minCharsPerPage)) {
-      throw new Error(
-        'This PDF appears to be a scanned image with no extractable text. ' +
-          'Upload a text-based PDF, or run OCR on the file first before uploading.',
-      );
+      pages = await extractPdfPages(source.buffer);
+      await query(`update documents set page_count = $2 where id = $1`, [docId, pages.length]);
+
+      // Guard against "silent empty indexing": a scanned or image-only PDF has no
+      // extractable text layer, which would otherwise yield zero chunks and be
+      // marked ready with nothing to retrieve from.
+      if (!hasExtractableText(pages, config.minCharsPerPage)) {
+        throw new Error(
+          'This PDF appears to be a scanned image with no extractable text. ' +
+            'Upload a text-based PDF, or run OCR on the file first before uploading.',
+        );
+      }
+    } else {
+      pages = [{ pageNumber: 1, text: source.content }];
+      await query(`update documents set page_count = $2 where id = $1`, [docId, 1]);
     }
 
     const chunks = chunkPages(
@@ -80,7 +100,7 @@ export async function uploadAndIngest(docId: string, fileBuffer: Buffer): Promis
 
     await query(`update documents set status = 'ready', progress = 1 where id = $1`, [docId]);
     console.log(
-      `Document ${docId} ingested: ${total} chunks across ${pages.length} pages in ${(performance.now() - t0).toFixed(0)}ms`,
+      `Document ${docId} ingested: ${total} chunks across ${pages.length} page(s) in ${(performance.now() - t0).toFixed(0)}ms`,
     );
     logCost(`ingestion.embedding (${embeddedTokens} tokens)`, costOfEmbeddings(embeddedTokens));
   } catch (err) {

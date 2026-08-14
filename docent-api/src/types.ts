@@ -1,13 +1,26 @@
 export type DocumentStatus = 'processing' | 'ready' | 'failed';
 
+export type SourceType = 'pdf' | 'text';
+
 export interface DocumentRow {
   id: string;
+  notebook_id: string;
   filename: string;
+  source_type: SourceType;
   uploaded_at: string;
   status: DocumentStatus;
   page_count: number | null;
   progress: number;
   error: string | null;
+  storage_path?: string | null;
+  content?: string | null;
+}
+
+export interface NotebookRow {
+  id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface PageText {

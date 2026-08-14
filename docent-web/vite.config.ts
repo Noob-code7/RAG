@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      '/notebooks': 'http://localhost:3001',
       '/documents': 'http://localhost:3001',
       '/query': 'http://localhost:3001',
     },

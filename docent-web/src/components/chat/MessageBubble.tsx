@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import type { ChatMessage, Citation, DocumentSummary } from '../../types';
 import ConfidenceIndicator from '../ConfidenceIndicator';
 import CitationPopover from '../CitationPopover';
+import { useToast } from '../ui/Toast';
+import ProfileAvatar from '../app/ProfileAvatar';
 
 function splitAnswer(answer: string, citations: Citation[], docs: DocumentSummary[]) {
   const filenameFor = (documentId: string) =>
@@ -33,15 +36,25 @@ function splitAnswer(answer: string, citations: Citation[], docs: DocumentSummar
 }
 
 export default function MessageBubble({ message, docs }: { message: ChatMessage; docs: DocumentSummary[] }) {
+  const push = useToast();
+  const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
+
+  const copyAnswer = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      push('Answer copied to clipboard.');
+    } catch {
+      push('Could not copy — your browser blocked clipboard access.');
+    }
+  };
+
   if (message.role === 'user') {
     return (
       <div className="flex w-full justify-end gap-md">
         <div className="max-w-[85%] rounded-lg rounded-tr-sm border border-outline-variant bg-surface-container-high px-md py-sm text-on-surface">
           <p className="font-body-doc text-body-doc">{message.content}</p>
         </div>
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary-container text-[13px] font-bold text-white">
-          Y
-        </div>
+        <ProfileAvatar size={32} className="mt-0.5 shrink-0" />
       </div>
     );
   }
@@ -59,18 +72,49 @@ export default function MessageBubble({ message, docs }: { message: ChatMessage;
         <div className="font-body-doc text-body-doc leading-relaxed text-on-surface">
           {splitAnswer(message.content, message.citations ?? [], docs)}
         </div>
-        {message.citations && message.citations.length > 0 && (
-          <div className="flex gap-sm">
-            <button className="flex items-center gap-1 rounded border border-outline-variant bg-transparent px-sm py-1 font-label-caps text-label-caps text-on-surface-variant transition-colors hover:bg-surface-container">
-              <span className="material-symbols-outlined text-[14px]">content_copy</span>
-              Copy
-            </button>
-            <button className="flex items-center gap-1 rounded border border-outline-variant bg-transparent px-sm py-1 font-label-caps text-label-caps text-on-surface-variant transition-colors hover:bg-surface-container">
-              <span className="material-symbols-outlined text-[14px]">thumb_up</span>
-              Helpful
-            </button>
-          </div>
-        )}
+        <div className="flex gap-sm">
+          <button
+            onClick={() => void copyAnswer()}
+            className="flex cursor-pointer items-center gap-1 rounded border border-outline-variant bg-transparent px-sm py-1 font-label-caps text-label-caps text-on-surface-variant transition-colors hover:bg-surface-container"
+          >
+            <span className="material-symbols-outlined text-[14px]">content_copy</span>
+            Copy
+          </button>
+          <button
+            onClick={() => {
+              setFeedback(feedback === 'up' ? null : 'up');
+              if (feedback !== 'up') push('Thanks for the feedback!');
+            }}
+            aria-pressed={feedback === 'up'}
+            className={`flex cursor-pointer items-center gap-1 rounded border px-sm py-1 font-label-caps text-label-caps transition-colors ${
+              feedback === 'up'
+                ? 'border-secondary bg-secondary/10 text-secondary'
+                : 'border-outline-variant bg-transparent text-on-surface-variant hover:bg-surface-container'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              {feedback === 'up' ? 'thumb_up' : 'thumb_up_off_alt'}
+            </span>
+            Helpful
+          </button>
+          <button
+            onClick={() => {
+              setFeedback(feedback === 'down' ? null : 'down');
+              if (feedback !== 'down') push('Thanks — we’ll use this to improve.');
+            }}
+            aria-pressed={feedback === 'down'}
+            className={`flex cursor-pointer items-center gap-1 rounded border px-sm py-1 font-label-caps text-label-caps transition-colors ${
+              feedback === 'down'
+                ? 'border-error bg-error/10 text-error'
+                : 'border-outline-variant bg-transparent text-on-surface-variant hover:bg-surface-container'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">
+              {feedback === 'down' ? 'thumb_down' : 'thumb_down_off_alt'}
+            </span>
+            Not helpful
+          </button>
+        </div>
       </div>
     </div>
   );
