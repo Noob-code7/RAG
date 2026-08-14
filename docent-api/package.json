@@ -1,0 +1,41 @@
+{
+  "name": "docent-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Docent ingestion backend — PDF → text → chunks → embeddings, stored in Supabase (Postgres + pgvector)",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit -p tsconfig.scripts.json",
+    "test": "node --import tsx --test tests/chunker.test.ts tests/query.test.ts tests/pdf.test.ts tests/observability.test.ts",
+    "generate-sample-pdf": "tsx scripts/generate-sample-pdf.ts",
+    "seed-demo": "tsx scripts/seed-demo.ts",
+    "verify-query": "tsx scripts/verify-query.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.47.10",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "gpt-tokenizer": "^2.7.1",
+    "multer": "^2.0.0",
+    "openai": "^4.77.0",
+    "pg": "^8.13.1",
+    "unpdf": "^0.12.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.11.10",
+    "pdf-lib": "^1.17.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
