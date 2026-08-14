@@ -3,8 +3,9 @@ import NotificationsPanel from './NotificationsPanel';
 import UserMenu from './UserMenu';
 
 const NAV_LINKS = [
-  { label: 'Notebooks', to: '/' },
   { label: 'Dashboard', to: '/dashboard' },
+  { label: 'Notebooks', to: '/notebooks' },
+  { label: 'Workspace', to: '/workspace' },
   { label: 'How it works', to: '/how-it-works' },
 ];
 
@@ -20,7 +21,7 @@ export default function AppNavbar() {
             <NavLink
               key={link.label}
               to={link.to}
-              end={link.to === '/'}
+              end={link.to === '/notebooks'}
               className={({ isActive }) =>
                 `rounded px-2 py-1 transition-colors hover:bg-surface-container-low ${
                   isActive

@@ -4,15 +4,16 @@ import { getNotebook, listNotebookDocuments } from '../api/client';
 import type { DocumentSummary, Notebook } from '../types';
 import AppNavbar from '../components/app/AppNavbar';
 import UploadView from '../components/app/UploadView';
-import SideNav, { type ScopeFilter } from '../components/chat/SideNav';
+import SideNav, { type ScopeFilter, type Section } from '../components/chat/SideNav';
 import ContextScope from '../components/chat/ContextScope';
 import ChatPanel from '../components/chat/ChatPanel';
+import ArtifactsPanel from '../components/chat/ArtifactsPanel';
 
 function WorkspaceBreadcrumb({ notebook }: { notebook: Notebook | null }) {
   return (
     <div className="flex shrink-0 items-center gap-md border-b border-outline-variant bg-surface-container-lowest px-lg py-sm">
       <Link
-        to="/"
+        to="/notebooks"
         className="flex items-center gap-xs font-label-caps text-label-caps text-secondary transition-colors hover:text-primary"
       >
         <span className="material-symbols-outlined text-[16px]">arrow_back</span>
@@ -33,6 +34,7 @@ export default function NotebookWorkspace() {
   const [documents, setDocuments] = useState<DocumentSummary[]>([]);
   const [view, setView] = useState<'upload' | 'chat'>('upload');
   const [filter, setFilter] = useState<ScopeFilter>('all');
+  const [section, setSection] = useState<Section>('documents');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const autoSelected = useRef(false);
@@ -49,6 +51,7 @@ export default function NotebookWorkspace() {
     setDocuments([]);
     setView('upload');
     setFilter('all');
+    setSection('documents');
     setError(null);
     autoSelected.current = false;
     manualUpload.current = false;
@@ -106,6 +109,7 @@ export default function NotebookWorkspace() {
   const backToWorkspace = useCallback(() => {
     manualUpload.current = false;
     setView('chat');
+    setSection('documents');
   }, []);
 
   const toggle = useCallback((id: string) => {
@@ -131,7 +135,7 @@ export default function NotebookWorkspace() {
             This notebook may have been deleted or the link is incorrect.
           </p>
           <Link
-            to="/"
+            to="/notebooks"
             className="mt-sm rounded bg-primary px-lg py-sm font-label-caps text-label-caps text-on-primary transition-opacity hover:opacity-90"
           >
             ← All Notebooks
@@ -183,21 +187,29 @@ export default function NotebookWorkspace() {
             filter={filter}
             onFilter={setFilter}
             onUpload={openUpload}
+            section={section}
+            onOpenArtifacts={() => setSection('artifacts')}
           />
           <main className="flex h-full flex-1 bg-surface">
-            <ContextScope
-              documents={filtered}
-              selectedIds={selectedIds}
-              onToggle={toggle}
-              onSelectAll={selectAll}
-            />
-            <ChatPanel
-              notebookId={id}
-              selectedDocs={selectedDocs}
-              allDocs={documents}
-              onClearContext={() => setSelectedIds([])}
-              loadError={error}
-            />
+            {section === 'artifacts' ? (
+              <ArtifactsPanel notebookId={id} docs={documents} onBack={() => setSection('documents')} />
+            ) : (
+              <>
+                <ContextScope
+                  documents={filtered}
+                  selectedIds={selectedIds}
+                  onToggle={toggle}
+                  onSelectAll={selectAll}
+                />
+                <ChatPanel
+                  notebookId={id}
+                  selectedDocs={selectedDocs}
+                  allDocs={documents}
+                  onClearContext={() => setSelectedIds([])}
+                  loadError={error}
+                />
+              </>
+            )}
           </main>
         </div>
       </div>

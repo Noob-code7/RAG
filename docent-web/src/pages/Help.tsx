@@ -153,7 +153,7 @@ export default function Help() {
               </div>
             </a>
             <Link
-              to="/"
+              to="/notebooks"
               className="flex items-center gap-sm rounded-lg border border-outline-variant bg-surface-container-lowest p-md transition-colors hover:border-secondary"
             >
               <span className="material-symbols-outlined text-secondary">chat_bubble</span>

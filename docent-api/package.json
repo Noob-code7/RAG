@@ -12,21 +12,28 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit -p tsconfig.scripts.json",
-    "test": "node --experimental-test-module-mocks --import tsx --test tests/chunker.test.ts tests/query.test.ts tests/pdf.test.ts tests/observability.test.ts tests/serializers.test.ts tests/notebooks.api.test.ts",
+    "test": "node --experimental-test-module-mocks --import tsx --test tests/chunker.test.ts tests/query.test.ts tests/pdf.test.ts tests/observability.test.ts tests/serializers.test.ts tests/notebooks.api.test.ts tests/chat.api.test.ts tests/artifacts.api.test.ts",
     "generate-sample-pdf": "tsx scripts/generate-sample-pdf.ts",
     "seed-demo": "tsx scripts/seed-demo.ts",
     "verify-query": "tsx scripts/verify-query.ts",
-    "verify-notebooks": "tsx scripts/verify-notebooks.ts"
+    "verify-notebooks": "tsx scripts/verify-notebooks.ts",
+    "verify-chat": "tsx scripts/verify-chat.ts",
+    "verify-artifacts": "tsx scripts/verify-artifacts.ts",
+    "verify-mindmap": "tsx scripts/verify-mindmap.ts",
+    "verify-report": "tsx scripts/verify-report.ts",
+    "verify-datatable": "tsx scripts/verify-datatable.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.10",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
     "express": "^4.21.2",
     "gpt-tokenizer": "^2.7.1",
     "multer": "^2.0.0",
     "openai": "^4.77.0",
     "pg": "^8.13.1",
+    "puppeteer": "^25.7.0",
     "unpdf": "^0.12.1"
   },
   "devDependencies": {

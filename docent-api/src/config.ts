@@ -45,6 +45,24 @@ export const config = {
   //     which is the hard guardrail against fabricated answers.
   embeddingSimHigh: Number(process.env.EMBED_SIM_THRESHOLD_HIGH ?? 0.4),
   embeddingSimLow: Number(process.env.EMBED_SIM_THRESHOLD_LOW ?? 0.25),
+
+  // --- Study artifacts (Phase 4) ---
+  // Chunks pulled into a flashcard/quiz generation prompt (broader than the
+  // single-query top-N). Upper bound on items a generation may produce.
+  artifactContextChunks: Number(process.env.ARTIFACT_CONTEXT_CHUNKS ?? 24),
+  maxArtifactCount: Number(process.env.MAX_ARTIFACT_COUNT ?? 20),
+  // Mind-map structure caps — enforced in code after parsing, never trusted to
+  // the model. Depth counts levels below the root topic; children caps the
+  // fan-out of any single node.
+  mindMapMaxDepth: Number(process.env.MIND_MAP_MAX_DEPTH ?? 3),
+  mindMapMaxChildren: Number(process.env.MIND_MAP_MAX_CHILDREN ?? 8),
+  // Data-table structure caps — enforced in code after parsing, never trusted
+  // to the model. A table is a structured extraction, so we treat a table
+  // suspiciously larger than ~2 rows per source chunk as hallucinated structure
+  // and truncate it (the "flag suspiciously large tables" sanity check).
+  dataTableMaxColumns: Number(process.env.DATA_TABLE_MAX_COLUMNS ?? 20),
+  dataTableRowRatio: Number(process.env.DATA_TABLE_ROW_RATIO ?? 3),
+  dataTableMaxRows: Number(process.env.DATA_TABLE_MAX_ROWS ?? 30),
   generationProvider: process.env.GENERATION_PROVIDER ?? 'gemini',
   generationModel: process.env.GENERATION_MODEL ?? 'gemini-3.6-flash',
   generationBaseUrl:

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { queryDocuments } from '../../api/client';
-import type { ChatMessage, DocumentSummary } from '../../types';
+import { getNotebookMessages, queryDocuments, queryNotebook, saveMessageAsNote } from '../../api/client';
+import type { ChatMessage, Citation, Confidence, DocumentSummary } from '../../types';
+import { useToast } from '../ui/Toast';
 import MessageBubble from './MessageBubble';
 
 const SUGGESTIONS = [
@@ -36,7 +37,9 @@ interface Props {
 }
 
 export default function ChatPanel({ notebookId, selectedDocs, allDocs, onClearContext, loadError }: Props) {
+  const push = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<{ message: string; question: string } | null>(null);
@@ -46,6 +49,39 @@ export default function ChatPanel({ notebookId, selectedDocs, allDocs, onClearCo
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, loading]);
+
+  // Load this notebook's persisted chat history (survives a page refresh).
+  useEffect(() => {
+    if (!notebookId) {
+      setMessages([]);
+      setHistoryLoaded(true);
+      return;
+    }
+    let cancelled = false;
+    setHistoryLoaded(false);
+    getNotebookMessages(notebookId)
+      .then((history) => {
+        if (cancelled) return;
+        setMessages(
+          history.map((m) => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+            citations: m.citations ?? undefined,
+            confidence: m.confidence ?? undefined,
+          })),
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setMessages([]);
+      })
+      .finally(() => {
+        if (!cancelled) setHistoryLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [notebookId]);
 
   const canAsk = selectedDocs.length > 0 && !loading;
 
@@ -60,16 +96,25 @@ export default function ChatPanel({ notebookId, selectedDocs, allDocs, onClearCo
     setError(null);
     setLoading(true);
     try {
-      const res = await queryDocuments(question, ids, notebookId);
+      let messageId: string | undefined;
+      let answer: string;
+      let citations: Citation[] | undefined;
+      let confidence: Confidence | undefined;
+      if (notebookId) {
+        const res = await queryNotebook(notebookId, question, ids);
+        messageId = res.message_id;
+        answer = res.answer;
+        citations = res.citations;
+        confidence = res.confidence;
+      } else {
+        const res = await queryDocuments(question, ids);
+        answer = res.answer;
+        citations = res.citations;
+        confidence = res.confidence;
+      }
       setMessages((m) => [
         ...m,
-        {
-          id: nextId(),
-          role: 'assistant',
-          content: res.answer,
-          citations: res.citations,
-          confidence: res.confidence,
-        },
+        { id: messageId ?? nextId(), role: 'assistant', content: answer, citations, confidence },
       ]);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Query failed';
@@ -80,17 +125,32 @@ export default function ChatPanel({ notebookId, selectedDocs, allDocs, onClearCo
     }
   };
 
+  const saveAsNote = async (messageId: string) => {
+    if (!notebookId) return;
+    try {
+      await saveMessageAsNote(notebookId, messageId);
+      push('Saved as a note in this notebook.');
+    } catch (err) {
+      push(err instanceof Error ? err.message : 'Could not save the note.');
+    }
+  };
+
   const retry = () => {
     if (!error || !canAsk) return;
     void submit(error.question, true);
   };
 
-  const hasMessages = messages.length > 0 || loading;
+  const hasMessages = historyLoaded && (messages.length > 0 || loading);
 
   return (
     <section className="relative flex h-full min-w-0 flex-1 flex-col bg-surface">
       <div ref={scrollRef} className="scroll-hidden flex-1 overflow-y-auto p-xl">
-        {!hasMessages ? (
+        {!historyLoaded ? (
+          <div className="flex min-h-full items-center justify-center gap-sm text-on-surface-variant">
+            <span className="material-symbols-outlined text-[18px] animate-pulse">history</span>
+            <span className="font-body-ui text-body-ui">Loading conversation…</span>
+          </div>
+        ) : !hasMessages ? (
           <div className="flex min-h-full flex-col items-center justify-center gap-md text-center">
             <div className="animate-rise flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-container-high text-secondary">
               <span className="material-symbols-outlined text-[32px]">chat_bubble</span>
@@ -119,7 +179,7 @@ export default function ChatPanel({ notebookId, selectedDocs, allDocs, onClearCo
         ) : (
           <div className="mx-auto flex w-full max-w-[720px] flex-col gap-xl pb-40">
             {messages.map((m) => (
-              <MessageBubble key={m.id} message={m} docs={allDocs} />
+              <MessageBubble key={m.id} message={m} docs={allDocs} onSaveAsNote={saveAsNote} />
             ))}
             {loading && <LoadingBubble />}
           </div>

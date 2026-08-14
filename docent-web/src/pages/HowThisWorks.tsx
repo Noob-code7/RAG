@@ -133,7 +133,7 @@ export default function HowThisWorks() {
             </p>
           </div>
           <Link
-            to="/"
+            to="/notebooks"
             className="flex items-center gap-sm rounded bg-primary px-lg py-sm font-label-caps text-label-caps text-on-primary transition-opacity hover:opacity-90"
           >
             <span className="material-symbols-outlined text-[16px]">folder</span>

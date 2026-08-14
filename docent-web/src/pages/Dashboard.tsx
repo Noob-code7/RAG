@@ -42,13 +42,13 @@ export default function Dashboard() {
   const first = settings.profile.name.split(/\s+/)[0];
 
   const stats = [
-    { label: 'Notebooks', value: String(notebooks.length), icon: 'folder', to: '/' },
-    { label: 'Total sources', value: String(totalSources), icon: 'description', to: '/' },
+    { label: 'Notebooks', value: String(notebooks.length), icon: 'folder', to: '/notebooks' },
+    { label: 'Total sources', value: String(totalSources), icon: 'description', to: '/notebooks' },
     {
       label: 'Most recently updated',
       value: mostRecent ? timeAgo(mostRecent.updatedAt) : '—',
       icon: 'history',
-      to: mostRecent ? `/notebooks/${mostRecent.id}` : '/',
+      to: mostRecent ? `/notebooks/${mostRecent.id}` : '/notebooks',
     },
   ];
 
@@ -91,7 +91,7 @@ export default function Dashboard() {
             <div className="mb-md flex items-center justify-between">
               <h2 className="font-headline-sm text-headline-sm text-on-surface">Recently updated</h2>
               <Link
-                to="/"
+                to="/notebooks"
                 className="font-label-caps text-label-caps text-secondary transition-colors hover:text-primary"
               >
                 View all
@@ -152,7 +152,7 @@ export default function Dashboard() {
 
             <div className="flex flex-col gap-sm">
               <Link
-                to="/"
+                to="/notebooks"
                 className="flex items-center justify-center gap-sm rounded bg-primary px-lg py-sm font-label-caps text-label-caps text-on-primary transition-opacity hover:opacity-90"
               >
                 <span className="material-symbols-outlined text-[16px]">add</span>

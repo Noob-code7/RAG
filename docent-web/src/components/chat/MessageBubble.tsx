@@ -35,7 +35,15 @@ function splitAnswer(answer: string, citations: Citation[], docs: DocumentSummar
   return parts;
 }
 
-export default function MessageBubble({ message, docs }: { message: ChatMessage; docs: DocumentSummary[] }) {
+export default function MessageBubble({
+  message,
+  docs,
+  onSaveAsNote,
+}: {
+  message: ChatMessage;
+  docs: DocumentSummary[];
+  onSaveAsNote?: (messageId: string) => void;
+}) {
   const push = useToast();
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
 
@@ -80,6 +88,15 @@ export default function MessageBubble({ message, docs }: { message: ChatMessage;
             <span className="material-symbols-outlined text-[14px]">content_copy</span>
             Copy
           </button>
+          {onSaveAsNote && (
+            <button
+              onClick={() => onSaveAsNote(message.id)}
+              className="flex cursor-pointer items-center gap-1 rounded border border-outline-variant bg-transparent px-sm py-1 font-label-caps text-label-caps text-on-surface-variant transition-colors hover:bg-surface-container"
+            >
+              <span className="material-symbols-outlined text-[14px]">bookmark_add</span>
+              Save as note
+            </button>
+          )}
           <button
             onClick={() => {
               setFeedback(feedback === 'up' ? null : 'up');

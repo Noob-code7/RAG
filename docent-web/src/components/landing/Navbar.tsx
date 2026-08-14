@@ -4,8 +4,9 @@ import NotificationsPanel from '../app/NotificationsPanel';
 import UserMenu from '../app/UserMenu';
 
 const NAV_LINKS = [
-  { label: 'Notebooks', to: '/' },
   { label: 'Dashboard', to: '/dashboard' },
+  { label: 'Notebooks', to: '/notebooks' },
+  { label: 'Workspace', to: '/workspace' },
   { label: 'How it works', to: '/how-it-works' },
 ];
 

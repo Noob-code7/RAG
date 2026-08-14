@@ -10,7 +10,7 @@ export default function FinalCta() {
         </h2>
         <Link
           data-reveal
-          to="/"
+          to="/notebooks"
           className="mt-lg inline-block rounded bg-surface px-xl py-md font-label-caps text-label-caps text-primary transition-colors hover:bg-surface-container-highest"
         >
           Start Grounding Today

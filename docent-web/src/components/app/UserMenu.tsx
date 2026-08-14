@@ -6,8 +6,9 @@ import ProfileAvatar from './ProfileAvatar';
 
 const PRIMARY_LINKS = [
   { label: 'Profile', to: '/settings?tab=profile', icon: 'person' },
-  { label: 'Notebooks', to: '/', icon: 'folder' },
   { label: 'Dashboard', to: '/dashboard', icon: 'dashboard' },
+  { label: 'Notebooks', to: '/notebooks', icon: 'folder' },
+  { label: 'Workspace', to: '/workspace', icon: 'chat_bubble' },
 ];
 
 const SECONDARY_LINKS = [

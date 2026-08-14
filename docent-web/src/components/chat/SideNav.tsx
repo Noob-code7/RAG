@@ -1,5 +1,7 @@
 export type ScopeFilter = 'all' | 'verified' | 'processing';
 
+export type Section = 'documents' | 'artifacts';
+
 const FILTERS: { key: ScopeFilter; label: string; icon: string }[] = [
   { key: 'all', label: 'All Documents', icon: 'folder' },
   { key: 'verified', label: 'Ready', icon: 'verified' },
@@ -12,12 +14,16 @@ export default function SideNav({
   filter,
   onFilter,
   onUpload,
+  section,
+  onOpenArtifacts,
 }: {
   notebookName?: string;
   count: number;
   filter: ScopeFilter;
   onFilter: (filter: ScopeFilter) => void;
   onUpload: () => void;
+  section: Section;
+  onOpenArtifacts: () => void;
 }) {
   return (
     <aside className="hidden w-sidebar-width flex-col border-r border-outline-variant bg-surface-container-lowest py-md text-secondary lg:flex">
@@ -53,6 +59,20 @@ export default function SideNav({
             </button>
           );
         })}
+
+        <div className="my-sm border-t border-outline-variant" />
+
+        <button
+          onClick={onOpenArtifacts}
+          className={`flex items-center gap-sm rounded py-sm pl-sm pr-sm text-left transition-all ${
+            section === 'artifacts'
+              ? 'border-l-4 border-secondary bg-surface-container font-bold text-secondary'
+              : 'border-l-4 border-transparent text-on-surface-variant opacity-70 hover:bg-surface-container-high hover:opacity-100'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[18px]">collections_bookmark</span>
+          <span>Artifacts</span>
+        </button>
       </nav>
 
       <div className="mt-auto flex flex-col gap-sm border-t border-outline-variant px-md pt-md">

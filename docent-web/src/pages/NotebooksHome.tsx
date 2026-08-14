@@ -155,30 +155,30 @@ export default function NotebooksHome() {
           role="dialog"
           aria-modal="true"
           aria-label="New notebook"
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-md"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) closeDialog();
           }}
         >
-          <div className="w-full max-w-sm animate-fade-pop rounded-lg border border-outline-variant bg-surface-container-lowest p-lg shadow-xl">
-            <div className="mb-md flex items-start justify-between gap-sm">
+          <div className="w-full max-w-[420px] animate-fade-pop rounded-xl border border-outline-variant bg-surface-container-lowest p-6 shadow-2xl">
+            <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <h2 className="font-headline-md text-headline-md text-on-surface">New notebook</h2>
-                <p className="mt-xs font-body-ui text-body-ui text-on-surface-variant">
+                <h2 className="font-headline-md text-headline-md font-semibold text-on-surface">New notebook</h2>
+                <p className="mt-1 font-body-ui text-body-ui text-on-surface-variant">
                   Give it a name — you can rename it later.
                 </p>
               </div>
               <button
                 onClick={closeDialog}
                 aria-label="Close"
-                className="cursor-pointer rounded p-1 text-on-surface-variant transition-colors hover:bg-surface-container"
+                className="cursor-pointer rounded-lg p-1 text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
               >
-                <span className="material-symbols-outlined text-[18px]">close</span>
+                <span className="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
 
             {createError && (
-              <div className="mb-sm flex items-center gap-sm rounded border border-error/30 bg-error-container px-md py-sm text-sm text-on-error-container">
+              <div className="mb-4 flex items-center gap-2 rounded-lg border border-error/30 bg-error-container px-3 py-2 text-sm text-on-error-container">
                 <span className="material-symbols-outlined text-[16px]">error</span>
                 <span className="flex-1">{createError}</span>
               </div>
@@ -192,21 +192,21 @@ export default function NotebooksHome() {
                 onChange={(e) => setName(e.target.value)}
                 maxLength={120}
                 placeholder="e.g. Physics 101"
-                className="mb-md w-full rounded border border-outline-variant bg-surface-container-lowest px-md py-sm font-body-ui text-body-ui text-on-surface placeholder:text-on-surface-variant focus:border-secondary focus:outline-none"
+                className="mb-6 block w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-2.5 font-body-ui text-body-ui text-on-surface placeholder:text-on-surface-variant/60 focus:border-secondary focus:ring-2 focus:ring-secondary/20 focus:outline-none"
               />
-              <div className="flex justify-end gap-sm">
+              <div className="flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={closeDialog}
                   disabled={submitting}
-                  className="cursor-pointer rounded border border-outline-variant px-lg py-sm font-label-caps text-label-caps text-on-surface-variant transition-colors hover:bg-surface-container"
+                  className="cursor-pointer rounded-lg border border-outline-variant px-4 py-2 font-label-caps text-label-caps text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={!name.trim() || submitting}
-                  className="cursor-pointer rounded bg-primary px-lg py-sm font-label-caps text-label-caps text-on-primary transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="cursor-pointer rounded-lg bg-primary px-5 py-2 font-label-caps text-label-caps text-on-primary transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {submitting ? 'Creating…' : 'Create Notebook'}
                 </button>

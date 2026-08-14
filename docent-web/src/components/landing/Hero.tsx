@@ -67,7 +67,7 @@ export default function Hero() {
           <div className="flex flex-col items-center justify-center gap-md sm:flex-row">
             <Link
               data-hero-cta
-              to="/"
+              to="/notebooks"
               className="rounded bg-[#0F172A] px-xl py-md font-label-caps text-label-caps text-on-primary transition-opacity hover:opacity-90"
             >
               Get Started

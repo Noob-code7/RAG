@@ -1,4 +1,11 @@
-import type { DocumentSummary, Notebook, QueryResponse } from '../types';
+import type {
+  Artifact,
+  ChatHistoryMessage,
+  Difficulty,
+  DocumentSummary,
+  Notebook,
+  QueryResponse,
+} from '../types';
 
 async function handle<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -110,4 +117,143 @@ export async function queryDocuments(
     }),
   });
   return handle<QueryResponse>(res);
+}
+
+/** Grounded, notebook-scoped chat query. Also persists the exchange to history. */
+export async function queryNotebook(
+  notebookId: string,
+  question: string,
+  documentIds: string[],
+): Promise<QueryResponse & { message_id: string }> {
+  const res = await fetchWithTimeout(`/notebooks/${notebookId}/query`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question, document_ids: documentIds }),
+  });
+  return handle<QueryResponse & { message_id: string }>(res);
+}
+
+export async function getNotebookMessages(notebookId: string): Promise<ChatHistoryMessage[]> {
+  const res = await fetch(`/notebooks/${notebookId}/messages`);
+  return handle<ChatHistoryMessage[]>(res);
+}
+
+export async function saveMessageAsNote(
+  notebookId: string,
+  messageId: string,
+  title?: string,
+): Promise<Artifact> {
+  const res = await fetch(`/notebooks/${notebookId}/messages/${messageId}/save-as-note`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    ...(title ? { body: JSON.stringify({ title }) } : {}),
+  });
+  return handle<Artifact>(res);
+}
+
+export async function getNotebookArtifacts(notebookId: string): Promise<Artifact[]> {
+  const res = await fetch(`/notebooks/${notebookId}/artifacts`);
+  return handle<Artifact[]>(res);
+}
+
+export interface ArtifactGenerationOptions {
+  documentIds: string[];
+  topic?: string;
+  difficulty?: Difficulty;
+  count?: number;
+  /** Optional user hint for what structured facts to extract (data tables). */
+  columnsHint?: string;
+}
+
+async function postArtifact(
+  notebookId: string,
+  kind: 'flashcards' | 'quiz' | 'mind-map' | 'report' | 'data-table',
+  options: ArtifactGenerationOptions,
+): Promise<Artifact> {
+  const res = await fetchWithTimeout(`/notebooks/${notebookId}/artifacts/${kind}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      document_ids: options.documentIds,
+      ...(options.topic ? { topic: options.topic } : {}),
+      ...(options.difficulty ? { difficulty: options.difficulty } : {}),
+      ...(options.count ? { count: options.count } : {}),
+      ...(options.columnsHint ? { columns_hint: options.columnsHint } : {}),
+    }),
+  });
+  return handle<Artifact>(res);
+}
+
+export async function generateFlashcards(
+  notebookId: string,
+  options: ArtifactGenerationOptions,
+): Promise<Artifact> {
+  return postArtifact(notebookId, 'flashcards', options);
+}
+
+export async function generateQuiz(
+  notebookId: string,
+  options: ArtifactGenerationOptions,
+): Promise<Artifact> {
+  return postArtifact(notebookId, 'quiz', options);
+}
+
+export async function generateMindMap(
+  notebookId: string,
+  options: ArtifactGenerationOptions,
+): Promise<Artifact> {
+  return postArtifact(notebookId, 'mind-map', options);
+}
+
+export async function generateReport(
+  notebookId: string,
+  options: ArtifactGenerationOptions,
+): Promise<Artifact> {
+  return postArtifact(notebookId, 'report', options);
+}
+
+export async function generateDataTable(
+  notebookId: string,
+  options: ArtifactGenerationOptions,
+): Promise<Artifact> {
+  return postArtifact(notebookId, 'data-table', options);
+}
+
+/** Download an exported artifact, triggering a browser download. */
+async function downloadExport(notebookId: string, artifactId: string, format: string): Promise<void> {
+  const res = await fetch(`/notebooks/${notebookId}/artifacts/${artifactId}/export?format=${format}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error ?? `Export failed: ${res.status}`);
+  }
+  const blob = await res.blob();
+  const disposition = res.headers.get('Content-Disposition') ?? '';
+  const match = /filename="?([^"]+)"?/.exec(disposition);
+  const filename = match?.[1] ?? `docent-export.${format}`;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/** Download a report artifact as Markdown or a styled PDF. */
+export async function downloadReport(
+  notebookId: string,
+  artifactId: string,
+  format: 'pdf' | 'md',
+): Promise<void> {
+  return downloadExport(notebookId, artifactId, format);
+}
+
+/** Download a data table as CSV or a real .xlsx workbook. */
+export async function downloadDataTable(
+  notebookId: string,
+  artifactId: string,
+  format: 'xlsx' | 'csv',
+): Promise<void> {
+  return downloadExport(notebookId, artifactId, format);
 }
